@@ -17,7 +17,7 @@
 #vars
 docker_network=172.18.0
 firts_ip=2 #0.1 is GW
-last_ip=7
+last_ip=7 #last expected ip of network
 email="email@gmail.com"
 expected_containers=6
 
