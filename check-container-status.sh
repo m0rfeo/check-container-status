@@ -8,7 +8,8 @@
 # Everyone is permitted to copy and distribute verbatim copies                                                                                                                         #
 # of this license document, but changing it is not allowed.                                                                                                                            #
 #                                                                                                                                                                                      #
-# Author: M0rfeo                                                                                                                                                                       #
+# Author: m0rfeo																				       #
+# Thanks to: Diego Fernandez Raposo                                                                                                                                                    #
 #																						       #
 # This script check connectivity of expected $docker_network for a defined number of containers (last ip of subnet = $last_ip) and send $email if the numbers of containers up are not #
 # the expected (declare as $expected_containers).																       #
@@ -16,33 +17,68 @@
 
 #vars
 docker_network=172.18.0
-firts_ip=2 #0.1 is GW
-last_ip=7 #last expected ip of network
-email="email@gmail.com"
-expected_containers=6
+firts_ip=2
+email="kikegarciag28@gmail.com"
+expected_containers=6 #Number of expected containers on the network to analyze
+if [ $firts_ip -eq 2 ]
+then
+        last_ip=$(($expected_containers + 1))
+else
+        last_ip=$(($firts_ip + $expected_containers -1))
+fi
+#Just to check variables
+echo "Loading script..."
+echo "Loading variables... "
+echo " -------------------------------------------------------"
+echo "|			VARIABLES			|"
+echo "|							|"
+echo "| - Expected Containers --> $expected_containers 				|"
+echo "| - Docker Network -------> $docker_network.0/16 		|"
+echo "| - Firts IP -------------> $firts_ip	       			|"
+echo "| - Last ip --------------> $last_ip	       			|"
+echo "| - Admin Mail -----------> $email	|"
+echo " -------------------------------------------------------"
 
-#Ping on expected subnet
+#Function ping with output 0/1
+fping() {
+  ping -q -c 1 -W .02 -q $1 &>/dev/null
+  return $?;
+};
+
+#Associative Array to keep track on analyzed containers
+declare -A containerStatus
+# Variable to count Up Containers
+declare num=0;
+
+#Scan to all subnet range
+echo "Starting scan..."
 while [ $firts_ip -le $last_ip ]
 do
-	ping -c 1 -q $docker_network.$firts_ip >> /tmp/ping-containers
-	let firts_ip=$firts_ip+1
+	fping $docker_network.$firts_ip
+	if [ $? -eq 0 ]; #stderr != 0
+	then
+	  containerStatus[$docker_network.$firts_ip]="UP";
+	  let num=num+1 #+1 container up
+	else
+	  containerStatus[$docker_network.$firts_ip]="DOWN";
+	fi
+
+	let firts_ip=$firts_ip+1 #Next IP on subrange
 done
-
-#Get number of containers running
-cat /tmp/ping-containers | grep packets | sort | uniq -c | sed -r 's/\s+//g' | cut -c1-1 > /tmp/num-containers-running
-
-#Check number of containers running and if are less than 6 send email to admin
-num=$(cat /tmp/num-containers-running)
 
 if [ $num -eq $expected_containers ];
 then
-	echo CHECK-CONTAINER-STATUS [DONE] - All containers on network are running
+	echo "CHECK-CONTAINER-STATUS [SUCESS] - Expected number of containers ($expected_containers) on $docker_network.0/16 :)"
 else
-	echo CHECK-CONTAINER-STATUS [FAIL] - Sending mail to admin...
+	echo "CHECK-CONTAINER-STATUS [FAIL] - Less of $expected_containers containers on $docker_network.0/16 :("
+	echo "-----------------"
+	for key in "${!containerStatus[@]}"; do
+		printf '%s = %s\n' "$key" "${containerStatus[$key]}"
+	done
+	echo "-----------------"
+	echo "Seding mail to $email..."
 	#Send email from $email to $email with -s subject and <<< body
 	mail -aFrom:$email -s "Cluster down" $email <<< "Something wrong";
 fi
 
-#Delete tmp file created
-rm /tmp/ping-containers
-rm /tmp/num-containers-running
+
