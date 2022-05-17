@@ -20,12 +20,8 @@ docker_network=172.18.0
 firts_ip=2
 email="kikegarciag28@gmail.com"
 expected_containers=6 #Number of expected containers on the network to analyze
-if [ $firts_ip -eq 2 ]
-then
-        last_ip=$(($expected_containers + 1))
-else
-        last_ip=$(($firts_ip + $expected_containers -1))
-fi
+last_ip=$(($firts_ip + $expected_containers -1)) #auto calc the last ip of subnet
+
 #Just to check variables
 echo "Loading script..."
 echo "Loading variables... "
@@ -44,6 +40,15 @@ fping() {
   ping -q -c 1 -W .02 -q $1 &>/dev/null
   return $?;
 };
+#Function to print info into array with Ips on docker_network and Status (UP/DOWN)
+printIps() {
+	echo "-----------------"
+        for key in "${!containerStatus[@]}"; do
+                printf '%s = %s\n' "$key" "${containerStatus[$key]}"
+        done
+        echo "-----------------"
+};
+
 
 #Associative Array to keep track on analyzed containers
 declare -A containerStatus
@@ -69,13 +74,10 @@ done
 if [ $num -eq $expected_containers ];
 then
 	echo "CHECK-CONTAINER-STATUS [SUCESS] - Expected number of containers ($expected_containers) on $docker_network.0/16 :)"
+	printIps
 else
 	echo "CHECK-CONTAINER-STATUS [FAIL] - Less of $expected_containers containers on $docker_network.0/16 :("
-	echo "-----------------"
-	for key in "${!containerStatus[@]}"; do
-		printf '%s = %s\n' "$key" "${containerStatus[$key]}"
-	done
-	echo "-----------------"
+	printIps
 	echo "Seding mail to $email..."
 	#Send email from $email to $email with -s subject and <<< body
 	mail -aFrom:$email -s "Cluster down" $email <<< "Something wrong";
