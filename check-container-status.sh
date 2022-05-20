@@ -32,7 +32,7 @@ echo "| - Expected Containers --> $expected_containers 				|"
 echo "| - Docker Network -------> $docker_network.0/16 		|"
 echo "| - Firts IP -------------> $firts_ip	       			|"
 echo "| - Last ip --------------> $last_ip	       			|"
-echo "| - Admin Mail -----------> $email	|"
+echo "| - Admin Mail -----------> $email		|"
 echo " -------------------------------------------------------"
 
 #Function ping with output 0/1
