@@ -18,7 +18,7 @@
 #vars
 docker_network=172.18.0
 firts_ip=2
-email="kikegarciag28@gmail.com"
+email="foo@email.com"
 expected_containers=6 #Number of expected containers on the network to analyze
 last_ip=$(($firts_ip + $expected_containers -1)) #auto calc the last ip of subnet
 
