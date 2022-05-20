@@ -9,9 +9,14 @@ Simply bash script to check connectivity of expected $docker_network for a defin
   - $expected_containers (number of containers expected on $docker_network).
 - For automate that task add script to crontab and do it with the frecuence that you want.
 - Additionally you can remove echo msgs on script to cleaner output.
+- By default alerts go to spam folder, just declare this alerts as no spam.
 
 # Required Packages
-- mailutils.
+- mailutils. 
+  - $ apt-get update && apt-get install mailutils
+
+# To Do
+- Looking for some way to send alerts to email as no spam.
 
 # Misc
 - Author: m0rfeo
