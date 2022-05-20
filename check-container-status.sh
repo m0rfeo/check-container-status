@@ -49,7 +49,6 @@ printIps() {
         echo "-----------------"
 };
 
-
 #Associative Array to keep track on analyzed containers
 declare -A containerStatus
 # Variable to count Up Containers
@@ -60,7 +59,7 @@ echo "Starting scan..."
 while [ $firts_ip -le $last_ip ]
 do
 	fping $docker_network.$firts_ip
-	if [ $? -eq 0 ]; #stderr != 0
+	if [ $? -eq 0 ];
 	then
 	  containerStatus[$docker_network.$firts_ip]="UP";
 	  let num=num+1 #+1 container up
@@ -82,5 +81,3 @@ else
 	#Send email from $email to $email with -s subject and <<< body
 	mail -aFrom:$email -s "Cluster down" $email <<< "Something wrong";
 fi
-
-
